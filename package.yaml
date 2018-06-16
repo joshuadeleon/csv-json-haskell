@@ -25,6 +25,7 @@ dependencies:
 - text
 - bytestring
 - vector
+- aeson
 
 library:
   source-dirs: src
@@ -39,7 +40,7 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - csv-json-haskell
-    default-extensions: OverloadedStrings
+    default-extensions: OverloadedStrings, DeriveGeneric
 
 tests:
   csv-json-haskell-test:

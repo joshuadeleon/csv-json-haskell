@@ -6,6 +6,7 @@ csv-json-haskell.cabal
 *.tag
 *~
 *_flymake.hs
+*.json
 .hsenv
 .stack-work/
 .stack-root/

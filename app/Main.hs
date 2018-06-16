@@ -1,9 +1,12 @@
 module Main where
 
+import Control.Monad
+import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as BL
-import Data.Csv
+import qualified Data.Csv as C
 import qualified Data.Text as T
 import qualified Data.Vector as V
+import GHC.Generics
 
 -- import Control.Applicative
 -- | Represents a person CSV file
@@ -13,34 +16,39 @@ data Person = Person
   , last_name :: T.Text
   , email :: T.Text
   , gender :: T.Text
-  } deriving (Show)
+  } deriving (Generic, Show)
 
-instance FromNamedRecord Person where
+instance C.FromNamedRecord Person where
   parseNamedRecord row =
-    Person <$> row .: "id" <*> row .: "first_name" <*> row .: "last_name" <*>
-    row .: "email" <*>
-    row .: "gender"
+    Person <$> C.lookup row "id" <*> C.lookup row "first_name" <*>
+    C.lookup row "last_name" <*>
+    C.lookup row "email" <*>
+    C.lookup row "gender"
+
+instance A.ToJSON Person
+
+instance A.FromJSON Person
 
 personCSV :: String
-personCSV =
-  "/Users/deleonj/OneDrive - autodesk/Personal/code/csv-json-haskell/mock/MOCK_DATA.csv"
+personCSV = "./mock/MOCK_DATA.csv"
 
---readPersonCSV :: ByteString -> Vector Person
+jsonFilePath :: String
+jsonFilePath = "./mock/Json_Mock.json"
+
+writeJson :: BL.ByteString -> IO ()
+writeJson = BL.writeFile jsonFilePath
+
 main :: IO ()
 main = do
   csvData <- decodeCsv personCSV
   let persons = getPersons csvData
-  print $ V.head persons
-  -- let p = head $ getPersons csv
-  -- print p
-  -- case decodeByName csvData of
-  --   Left err -> putStrLn err
-  --   Right (_, v) ->
-  --     V.forM_ v (\p -> print $ T.concat [first_name p, " ", last_name p])
+  let personsJson = A.encode persons
+  writeJson personsJson
 
 -- | Decodes a CSV into a Person
-decodeCsv :: String -> IO (Either String (Header, V.Vector Person))
-decodeCsv filePath = decodeByName <$> BL.readFile filePath
+decodeCsv :: String -> IO (Either String (C.Header, V.Vector Person))
+decodeCsv filePath = C.decodeByName <$> BL.readFile filePath
 
-getPersons :: Either String (Header, V.Vector a) -> V.Vector a
+-- | Gets Persons from an Either
+getPersons :: Either String (C.Header, V.Vector a) -> V.Vector a
 getPersons (Right (_, v)) = v

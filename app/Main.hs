@@ -1,22 +1,16 @@
 module Main where
 
+import CommandOptions
 import Control.Monad
 import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as BL
+import Options.Applicative
 import Person
-
-personCSV :: String
-personCSV = "./mock/MOCK_DATA.csv"
-
-jsonFilePath :: String
-jsonFilePath = "./mock/Json_Mock.json"
-
-writeJson :: BL.ByteString -> IO ()
-writeJson = BL.writeFile jsonFilePath
 
 main :: IO ()
 main = do
-  csvData <- decodeCsv personCSV
+  args <- execParser argumentHelper -- handles command line arguments
+  csvData <- decodeCsv $ csv args
   let persons = getPersons csvData
   let personsJson = A.encode persons
-  writeJson personsJson
+  BL.writeFile (json args) personsJson
